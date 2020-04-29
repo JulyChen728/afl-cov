@@ -49,7 +49,7 @@ __version__ = '0.6.2'
 NO_OUTPUT   = 0
 WANT_OUTPUT = 1
 LOG_ERRORS  = 2
-
+traceDirName = "/home/qian/afl-test"
 def main():
 
     exit_success = 0
@@ -150,13 +150,20 @@ def process_afl_test_cases(cargs):
                 if f not in afl_files:
                     afl_files.append(f)
                     new_files.append(f)
+ 
 
             if new_files:
                 logr("\n*** Imported %d new test cases from: %s\n" \
                         % (len(new_files), (fuzz_dir + '/queue')),
                         cov_paths['log_file'], cargs)
+            global id
 
             for f in new_files:
+                file = traceDirName+"/"+str(id)+".json"
+                id += 1
+                fp = open(file,"wb")
+                pickle.dump(f,fp,-1)
+                f.close()
 
                 f_ctr += 1
                 if f_ctr == len(new_files):
