@@ -159,11 +159,11 @@ def process_afl_test_cases(cargs):
             global id
 
             for f in new_files:
-                file = traceDirName+"/"+str(id)+".json"
+                file = traceDirName+"/"+str(id)+".extra"
                 id += 1
                 fp = open(file,"wb")
                 pickle.dump(f,fp,-1)
-                f.close()
+                fp.close()
 
                 f_ctr += 1
                 if f_ctr == len(new_files):
