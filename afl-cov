@@ -463,20 +463,28 @@ def cov_init(cfile, cov):
             cov[k][cfile]['line'] = {}
     return
 
-def extract_coverage(lcov_file, log_file, cargs):
-
+def extract_coverage(lcov_file, cargs):
+    
+    global traceCount
     search_rv = False
     tmp_cov = {}
+    endTime = datetime.datetime.now()
+    k = endTime - startTime
+    k = k.total_seconds()
+    SeqInfo = {}
+    SeqInfo["time"] = k
+    SeqInfo["data"] = []
 
     if not os.path.exists(lcov_file):
-        logr("[-] Coverage file '%s' does not exist, skipping." % lcov_file,
-                log_file, cargs)
+        logr("[-] Coverage file '%s' does not exist, skipping." % lcov_file)
         return tmp_cov
 
     ### populate old lcov output for functions/lines that were called
     ### zero times
     with open(lcov_file, 'r') as f:
         current_file = ''
+        SeqInfo["data"].append({"file":current_file, "function":[], "line":[]})
+        tmpSeq = SeqInfo["data"][-1]
         for line in f:
             line = line.strip()
 
@@ -484,6 +492,11 @@ def extract_coverage(lcov_file, log_file, cargs):
             if m and m.group(1):
                 current_file = m.group(1)
                 cov_init(current_file, tmp_cov)
+                if len(tmpSeq["line"]) == 0:
+                    tmpSeq["file"] = current_file
+                else:
+                    SeqInfo["data"].append({"file":current_file, "function":[], "line":[]})
+                    tmpSeq = SeqInfo["data"][-1]
                 continue
 
             if current_file:
@@ -495,6 +508,7 @@ def extract_coverage(lcov_file, log_file, cargs):
                         tmp_cov['zero'][current_file]['function'][fcn] = ''
                     else:
                         tmp_cov['pos'][current_file]['function'][fcn] = ''
+                        tmpSeq["function"].append(fcn)
                     continue
 
                 ### look for lines that were never called
@@ -506,7 +520,14 @@ def extract_coverage(lcov_file, log_file, cargs):
                         tmp_cov['zero'][current_file]['line'][lnum] = ''
                     else:
                         tmp_cov['pos'][current_file]['line'][lnum] = ''
-
+                        tmpSeq["line"].append(lnum)
+    if len(tmpSeq["line"]) == 0:
+        SeqInfo["data"].remove(tmpSeq)
+    savefile = traceDirName+"/"+str(traceCount)+".extra"
+    traceCount += 1
+    f = open(savefile, "wb")
+    pickle.dump(SeqInfo, f, -1)
+    f.close()
     return tmp_cov
 
 def search_cov(cargs):
