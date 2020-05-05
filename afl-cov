@@ -164,11 +164,7 @@ def process_afl_test_cases(cargs):
             
 
             for f in new_files:
-                file = traceDirName+"/testcase/"+str(id)+".extra"
-                id += 1
-                fp = open(file,"wb")
-                pickle.dump(f,fp,-1)
-                fp.close()
+                
 
                 f_ctr += 1
                 if f_ctr == len(new_files):
@@ -270,11 +266,7 @@ def process_afl_test_cases(cargs):
 
             ### diff to the previous code coverage, look for new
             ### lines/functions, and write out results
-            file = traceDirName+"/testcase"+str(id)+".extra"
-            id += 1
-            fp_2 = open(file,"wb")
-            pickle.dump(cov_paths['id_file'],fp_2,-1)
-            fp_2.close()
+            
             coverage_diff(curr_cycle, fuzz_dir, cov_paths,
                     cov_paths['id_file'], cov, cargs)
 
@@ -315,6 +307,7 @@ def coverage_diff(cycle_num, fuzz_dir, cov_paths, afl_file, cov, cargs):
     log_lines         = []
     delta_log_lines   = []
     print_diff_header = True
+    id = 0
 
     ### defaults
     a_file = '(init)'
@@ -328,6 +321,12 @@ def coverage_diff(cycle_num, fuzz_dir, cov_paths, afl_file, cov, cargs):
         delta_file = 'id:[%d-%d]...' % \
                 (cov_paths['id_min'], cov_paths['id_max'])
 
+    file = traceDirName+"/testcase/"+str(id)+".extra"
+    id += 1
+    fp = open(file,"wb")
+    pickle.dump(afl_file,fp,-1)
+    fp.close()
+    
     new_cov = extract_coverage(cov_paths['lcov_info_final'],
              cargs)
 
