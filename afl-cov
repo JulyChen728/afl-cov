@@ -118,7 +118,6 @@ def process_afl_test_cases(cargs):
 
     afl_files = []
     cov_paths = {}
-    id = 0
 
     ### main coverage tracking dictionary
     cov         = {}
@@ -320,14 +319,23 @@ def coverage_diff(cycle_num, fuzz_dir, cov_paths, afl_file, cov, cargs):
         b_file = 'id:%d...' % cov_paths['id_max']
         delta_file = 'id:[%d-%d]...' % \
                 (cov_paths['id_min'], cov_paths['id_max'])
-
+    try:
+        fp = open(afl_file,"r")
+        print("the afl_file %s opened successfully" % str(afl_file))
+        context = fp.read()
+        fp.close()
+        print("the input content is " + str(context))
+    except IOError:
+        print("fail to open file %s" % afl_file)
+    
+        
     file = traceDirName+"/testcase/"+str(id)+".extra"
     id += 1
-    fp = open(file,"wb")
-    pickle.dump(afl_file,fp,-1)
+    fp = open(file,"w")
+    pickle.dump(context,fp,-1)
     fp.close()
     
-    new_cov = extract_coverage(cov_paths['lcov_info_final'],
+    new_cov = extract_coverage(cov_paths['lcov_info_final'],afl_file,
              cargs)
 
     if not new_cov:
@@ -534,7 +542,7 @@ def extract_coverage(lcov_file, cargs):
         SeqInfo["data"].remove(tmpSeq)
     savefile = traceDirName+"/coverage/"+str(traceCount)+".extra"
     traceCount += 1
-    f = open(savefile, "wb")
+    f = open(savefile, "w")
     pickle.dump(SeqInfo, f, -1)
     f.close()
     return tmp_cov
