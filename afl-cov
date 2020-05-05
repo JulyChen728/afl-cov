@@ -38,6 +38,8 @@ import argparse
 import time
 import signal
 import sys, os
+import pickle
+import datetime
 
 try:
     import subprocess32 as subprocess
@@ -49,8 +51,9 @@ __version__ = '0.6.2'
 NO_OUTPUT   = 0
 WANT_OUTPUT = 1
 LOG_ERRORS  = 2
-traceDirName = "/home/qian/afl-test"
-global id
+traceDirName = "/home/qian/afl-test/data"
+startTime = datetime.datetime.now()
+
 def main():
 
     exit_success = 0
@@ -115,6 +118,7 @@ def process_afl_test_cases(cargs):
 
     afl_files = []
     cov_paths = {}
+    id = 0
 
     ### main coverage tracking dictionary
     cov         = {}
@@ -160,7 +164,7 @@ def process_afl_test_cases(cargs):
             
 
             for f in new_files:
-                file = traceDirName+"/"+str(id)+".extra"
+                file = traceDirName+"/testcase/"+str(id)+".extra"
                 id += 1
                 fp = open(file,"wb")
                 pickle.dump(f,fp,-1)
@@ -266,7 +270,7 @@ def process_afl_test_cases(cargs):
 
             ### diff to the previous code coverage, look for new
             ### lines/functions, and write out results
-            file = traceDirName+"/"+str(id)+".extra"
+            file = traceDirName+"/testcase"+str(id)+".extra"
             id += 1
             fp_2 = open(file,"wb")
             pickle.dump(cov_paths['id_file'],fp_2,-1)
@@ -325,7 +329,7 @@ def coverage_diff(cycle_num, fuzz_dir, cov_paths, afl_file, cov, cargs):
                 (cov_paths['id_min'], cov_paths['id_max'])
 
     new_cov = extract_coverage(cov_paths['lcov_info_final'],
-            cov_paths['log_file'], cargs)
+             cargs)
 
     if not new_cov:
         return
@@ -471,7 +475,7 @@ def cov_init(cfile, cov):
 
 def extract_coverage(lcov_file, cargs):
     
-    global traceCount
+    traceCount = 0
     search_rv = False
     tmp_cov = {}
     endTime = datetime.datetime.now()
@@ -529,7 +533,7 @@ def extract_coverage(lcov_file, cargs):
                         tmpSeq["line"].append(lnum)
     if len(tmpSeq["line"]) == 0:
         SeqInfo["data"].remove(tmpSeq)
-    savefile = traceDirName+"/"+str(traceCount)+".extra"
+    savefile = traceDirName+"/coverage/"+str(traceCount)+".extra"
     traceCount += 1
     f = open(savefile, "wb")
     pickle.dump(SeqInfo, f, -1)
