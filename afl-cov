@@ -53,6 +53,7 @@ WANT_OUTPUT = 1
 LOG_ERRORS  = 2
 traceDirName = "/home/qian/afl-test/data"
 startTime = datetime.datetime.now()
+array = []
 
 def main():
 
@@ -283,6 +284,10 @@ def process_afl_test_cases(cargs):
                     cov_paths['log_file'], cargs)
         rv = False
 
+    #这之后就不会调用coverage_diff，也就不会调用extract_coverage函数了，可以将array写进json文件中了
+    with open("/home/qian/afl-test/coverage/result.json","w") as fp:
+        json.dump(array,fp)
+        print("the coverage message is written.")
     return rv
 
 def id_range_update(afl_file, cov_paths):
@@ -319,22 +324,25 @@ def coverage_diff(cycle_num, fuzz_dir, cov_paths, afl_file, cov, cargs):
         b_file = 'id:%d...' % cov_paths['id_max']
         delta_file = 'id:[%d-%d]...' % \
                 (cov_paths['id_min'], cov_paths['id_max'])
-    try:
-        fp = open(afl_file,"r")
-        print("the afl_file %s opened successfully" % str(afl_file))
-        context = fp.read()
-        fp.close()
-        print("the input content is " + str(context))
-    except IOError:
-        print("fail to open file %s" % afl_file)
+    #查看变异的用例的内容
+    #try:
+    #    fp = open(afl_file,"r")
+    #    print("the afl_file %s opened successfully" % str(afl_file))
+    #    context = fp.read()
+    #    fp.close()
+    #    print("the input content is " + str(context))
+    #except IOError:
+    #    print("fail to open file %s" % afl_file)
     
-        
-    file = traceDirName+"/testcase/"+str(id)+".extra"
-    id += 1
-    fp = open(file,"w")
-    pickle.dump(context,fp,-1)
-    fp.close()
+    #将用例的内容保存至文件中    
+    #file = traceDirName+"/testcase/"+str(id)+".extra"
+    #id += 1
+    #fp = open(file,"w")
+    #pickle.dump(context,fp,-1)
+    #fp.close()
     
+    os.system("cp "+afl_file+" /home/qian/afl-test/input/")
+   
     new_cov = extract_coverage(cov_paths['lcov_info_final'],afl_file,
              cargs)
 
@@ -480,8 +488,8 @@ def cov_init(cfile, cov):
             cov[k][cfile]['line'] = {}
     return
 
-def extract_coverage(lcov_file, cargs):
-    
+def extract_coverage(lcov_file, afl_file,cargs):
+    global array
     traceCount = 0
     search_rv = False
     tmp_cov = {}
@@ -540,11 +548,13 @@ def extract_coverage(lcov_file, cargs):
                         tmpSeq["line"].append(lnum)
     if len(tmpSeq["line"]) == 0:
         SeqInfo["data"].remove(tmpSeq)
-    savefile = traceDirName+"/coverage/"+str(traceCount)+".extra"
-    traceCount += 1
-    f = open(savefile, "w")
-    pickle.dump(SeqInfo, f, -1)
-    f.close()
+    #savefile = traceDirName+"/coverage/"+str(traceCount)+".extra"
+    #traceCount += 1
+    #f = open(savefile, "w")
+    #pickle.dump(SeqInfo, f, -1)
+    #f.close()
+    dic = {afl_file:SeqInfo}
+    array.append(dic)
     return tmp_cov
 
 def search_cov(cargs):
