@@ -53,6 +53,7 @@ NO_OUTPUT   = 0
 WANT_OUTPUT = 1
 LOG_ERRORS  = 2
 traceDirName = "/home/qian/afl-test/data"
+dir = "/home/qian/afl-test/"
 startTime = datetime.datetime.now()
 array = []
 
@@ -286,7 +287,7 @@ def process_afl_test_cases(cargs):
         rv = False
 
     #这之后就不会调用coverage_diff，也就不会调用extract_coverage函数了，可以将array写进json文件中了
-    with open("/home/qian/afl-test/coverage/result.json","w") as fp:
+    with open(dir+"coverage/result.json","w") as fp:
         json.dump(array,fp)
         print("the coverage message is written.")
     return rv
@@ -342,9 +343,9 @@ def coverage_diff(cycle_num, fuzz_dir, cov_paths, afl_file, cov, cargs):
     #pickle.dump(context,fp,-1)
     #fp.close()
     
-    os.system("cp "+afl_file+" /home/qian/afl-test/input/")
+    #os.system("cp "+afl_file+" /home/qian/afl-test/input/")
    
-    new_cov = extract_coverage(cov_paths['lcov_info_final'],afl_file,
+    new_cov = extract_coverage(cov_paths['lcov_info_final'],afl_file,cov_paths['log_file'],
              cargs)
 
     if not new_cov:
@@ -489,7 +490,7 @@ def cov_init(cfile, cov):
             cov[k][cfile]['line'] = {}
     return
 
-def extract_coverage(lcov_file, afl_file,cargs):
+def extract_coverage(lcov_file, afl_file,log_file,cargs):
     global array
     traceCount = 0
     search_rv = False
@@ -502,7 +503,7 @@ def extract_coverage(lcov_file, afl_file,cargs):
     SeqInfo["data"] = []
 
     if not os.path.exists(lcov_file):
-        logr("[-] Coverage file '%s' does not exist, skipping." % lcov_file)
+        logr("[-] Coverage file '%s' does not exist, skipping." % lcov_file,log_file, cargs)
         return tmp_cov
 
     ### populate old lcov output for functions/lines that were called
@@ -555,7 +556,12 @@ def extract_coverage(lcov_file, afl_file,cargs):
     #pickle.dump(SeqInfo, f, -1)
     #f.close()
     dic = {afl_file:SeqInfo}
+    print("dic:")
+    print(dic)
     array.append(dic)
+    os.system("cp "+afl_file+" "+dir+"input/")
+    print("afl_file:")
+    print(afl_file)
     return tmp_cov
 
 def search_cov(cargs):
@@ -1264,7 +1270,7 @@ def parse_cmdline():
     return p.parse_args()
 
 def my_handler():
-     with open("/home/qian/afl-test/coverage/result.json","w") as fp:
+     with open(dir+"coverage/result.json","w") as fp:
         json.dump(array,fp)
         print("the coverage message is written.")
      exit
