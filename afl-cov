@@ -53,7 +53,7 @@ NO_OUTPUT   = 0
 WANT_OUTPUT = 1
 LOG_ERRORS  = 2
 traceDirName = "/home/qian/afl-test/data"
-dir = "/home/qian/afl-test/"
+dir = "/home/qian/gzip-1.10/"
 startTime = datetime.datetime.now()
 array = []
 
@@ -286,7 +286,7 @@ def process_afl_test_cases(cargs):
                     cov_paths['log_file'], cargs)
         rv = False
 
-    #这之后就不会调用coverage_diff，也就不会调用extract_coverage函数了，可以将array写进json文件中了
+    #the function extract_coverag will not be invoked any more，write the array into json file
     with open(dir+"coverage/result.json","w") as fp:
         json.dump(array,fp)
         print("the coverage message is written.")
@@ -326,7 +326,7 @@ def coverage_diff(cycle_num, fuzz_dir, cov_paths, afl_file, cov, cargs):
         b_file = 'id:%d...' % cov_paths['id_max']
         delta_file = 'id:[%d-%d]...' % \
                 (cov_paths['id_min'], cov_paths['id_max'])
-    #查看变异的用例的内容
+    #check the content of testcase
     #try:
     #    fp = open(afl_file,"r")
     #    print("the afl_file %s opened successfully" % str(afl_file))
@@ -336,7 +336,7 @@ def coverage_diff(cycle_num, fuzz_dir, cov_paths, afl_file, cov, cargs):
     #except IOError:
     #    print("fail to open file %s" % afl_file)
     
-    #将用例的内容保存至文件中    
+    #save the testcase into file    
     #file = traceDirName+"/testcase/"+str(id)+".extra"
     #id += 1
     #fp = open(file,"w")
